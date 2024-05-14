@@ -1,8 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Management;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 
@@ -62,7 +63,7 @@ namespace CPU_Monitor
         {
             setCPUUsage();
             setCPUTemperature();
-            //LoadThreads();
+            LoadThreads();
         }
         private void setCPUUsage() {
             float cpuUsage = cpuCounter.NextValue();
@@ -113,7 +114,7 @@ namespace CPU_Monitor
                 {
                     foreach (ProcessThread thread in currentProcess.Threads)
                     {
-                        Threads.Add(new ThreadInfo
+                        threads.Add(new ThreadInfo
                         {
                             Id = thread.Id,
                             State = thread.ThreadState.ToString(),
@@ -125,29 +126,16 @@ namespace CPU_Monitor
                             WaitReason = thread.ThreadState == System.Diagnostics.ThreadState.Wait ? thread.WaitReason.ToString() : "N/A",
                         });
                     }
-                    UsedThreadCountValueLabel.Text = Threads.Count.ToString();
+                    UsedThreadCountValueLabel.Text = threads.Count.ToString();
+                    if (!IsThreadsEqual(threads, Threads))
+                    {
+                        if (Threads.Count != 0) Threads.Clear();
+                        foreach (var thread in threads.OrderBy(thread => thread.Id))
+                        {
+                            Threads.Add(thread);
+                        }
+                    }
                 });
-                //    if (!IsThreadsEqual(threads, Threads))
-                //    {
-                //        if(Threads.Count != 0) Threads.Clear();
-                //        foreach (ProcessThread thread in currentProcess.Threads)
-                //        {
-                //            Application.Current.Dispatcher.Invoke(() =>
-                //            {
-                //                threads.Add(new ThreadInfo
-                //                {
-                //                    Id = thread.Id,
-                //                    State = thread.ThreadState.ToString(),
-                //                    PriorityLevel = thread.PriorityLevel.ToString(),
-                //                    BasePriority = thread.BasePriority,
-                //                    CurrentPriority = thread.CurrentPriority,
-                //                    StartTime = thread.StartTime.ToString("G"),
-                //                    ThreadState = thread.ThreadState.ToString(),
-                //                    WaitReason = thread.ThreadState == System.Diagnostics.ThreadState.Wait ? thread.WaitReason.ToString() : "N/A",
-                //                });
-                //            });
-                //        }
-                //    }
             });
         }
         public bool IsThreadsEqual(ObservableCollection<ThreadInfo> oldThreads, ObservableCollection<ThreadInfo> newThreads)
