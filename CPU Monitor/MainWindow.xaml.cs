@@ -80,25 +80,25 @@ namespace CPU_Monitor
 
                 ManagementObjectCollection results = searcher.Get();
                 ManagementObject queryObj = results.Cast<ManagementObject>().FirstOrDefault();
-                double temperature = Convert.ToDouble(queryObj["CurrentTemperature"].ToString());
-                cpuTemperatureValueLabel.Text = $"{(temperature / 10.0) - 273.15} °C"; 
+                double temperature = Convert.ToDouble(queryObj["CurrentTemperature"].ToString()) / 10.0 - 273.15;
+                cpuTemperatureValueLabel.Text = $"{(int)temperature} °C"; 
+                double fraction = (temperature - 50) / (70 - 50);
                 if (temperature >= 50 && temperature <= 70)
                 {
-                    double fraction = (temperature - 50) / (70 - 50);
-                    byte red = (byte)(255 * fraction);
-                    byte green = (byte)(255 * (1 - fraction));
-                    byte blue = 0;
-
-                    temperatureIndicatorRectangle.Fill = new SolidColorBrush(Color.FromRgb(red, green, blue));
+                    fraction = (temperature - 50.0) / 20;
                 }
                 else if (temperature < 50)
                 {
-                    temperatureIndicatorRectangle.Fill = new SolidColorBrush(Colors.Green);
+                    fraction = 0;
                 }
                 else
                 {
-                    temperatureIndicatorRectangle.Fill = new SolidColorBrush(Colors.Red);
+                    fraction = 1;
                 }
+                byte red = (byte)(255 * (1 - fraction));
+                byte green = (byte)(255 * fraction);
+                byte blue = 0;
+                temperatureIndicatorRectangle.Fill = new SolidColorBrush(Color.FromRgb(red, green, blue));
             }
             catch
             {
