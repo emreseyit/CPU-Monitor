@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Management;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -63,6 +64,7 @@ namespace CPU_Monitor
         {
             setCPUUsage();
             setCPUTemperature();
+            setThreadCount();
             LoadThreads();
         }
         private void setCPUUsage() {
@@ -103,6 +105,15 @@ namespace CPU_Monitor
                 cpuTemperatureValueLabel.Text = "0 °C";
             }
         }
+        private void setThreadCount()
+        {
+            int threadCount = 0;
+            Process[] processes = Process.GetProcesses();
+            foreach (Process process in processes)
+                threadCount += process.Threads.Count;
+
+            UsedThreadCountValueLabel.Text = threadCount.ToString();
+        }
 
         private void LoadThreads()
         {
@@ -126,7 +137,6 @@ namespace CPU_Monitor
                             WaitReason = thread.ThreadState == System.Diagnostics.ThreadState.Wait ? thread.WaitReason.ToString() : "N/A",
                         });
                     }
-                    UsedThreadCountValueLabel.Text = threads.Count.ToString();
                     if (!IsThreadsEqual(threads, Threads))
                     {
                         if (Threads.Count != 0) Threads.Clear();
